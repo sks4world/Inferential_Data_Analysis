@@ -1,0 +1,168 @@
+---
+title: "Class_Presentation"
+author: "Srikrishna Krishnarao Srinivasan"
+date: "January 22, 2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(gridExtra)
+library(knitr)
+library(openxlsx)
+```
+
+## R Markdown
+
+Analysis of Baldrige Evaluation Criteria and Results for the Cateogry 5.Workforce Focus
+
+#1. The number of items in Workforce Focus category by year
+
+```{r,echo=FALSE}
+
+df=data.frame('year'=1990, 'items_count' = 5)
+df=rbind(df, c(1991,5), c(1992,5), c(1993,5), c(1994,5), c(1995,4), c(1996,4), c(1997,3),c(1998,3),c(1999,3),c(2000,3),c(2001,3),c(2002,3),c(2003,3),c(2004,3))
+#print(df)
+
+# df1=data.frame('year'=1990, 'items_count' = '5', stringsAsFactors = FALSE)
+# df1=rbind(df1, c(1991,'5'), c(1992,'5'), c(1993,'5'), c(1994,'5'), c(1995,'4'), c(1996,'4'))
+# print(df1)
+
+
+p = ggplot(data = df, aes(x=year, y=items_count, fill=year)) +
+  geom_bar(stat='identity') +
+  geom_text(aes(label=items_count), vjust=1.6, color='white', size=3.5) +
+  theme_minimal()
+
+print(p)
+
+
+#print(df1)
+
+SummaryTable=data.frame('Number'=1,
+                        '1990'= 'Human Resource Management', 
+                        '1995'='Human Resource Planning and Evaluation',
+                        '1997'='Work Systems',
+                        '2003'='Work Systems',
+                        stringsAsFactors = FALSE)
+SummaryTable=rbind(SummaryTable, 
+                   c(2,'Employee Involvement', 
+                       'High performance work systems', 
+                       'Employee Education, Training and Development', 
+                       'Employee Learning and Motivation'),
+                   c(3,'Quality Education and Training', 
+                       'Employee Education Training and Development', 
+                       'Employee Well Being and Satisfaction', 
+                       'Employee Well Being and Satisfaction'),
+                   c(4,'Employee Recognition and Performance Measurement', 
+                       'Employee Well being and Satisfaction', 
+                       'dropped',
+                       'dropped'),
+                   c(5,'Employee Well-being and morale',
+                       'dropped',
+                       'dropped',
+                       'dropped'))
+
+
+kable(SummaryTable)
+
+```
+
+#2. Line chart of average icat5total over years
+
+```{r,echo=FALSE}
+
+setwd('B:/Travel/US/USF_Course/SDM')
+df = read.xlsx('baldridge2011-1.xlsx')
+#colnames(df)
+
+cat_5_cols = c("i5.1score","i5.1max","i5.2score","i5.2max","i5.3score","i5.3max","i5.4score","i5.4max","i5.5score","i5.5max","i5.6score","i5.6max", "i5.7score", "i5.7max","icat5total","icat5max", 'year', 'sector') 
+
+df = df[, cat_5_cols]
+#summary(df)
+
+df_trend = data.frame('year'=1111, 'icat5total_year_avg'=0)
+
+#print(unique(df$year))
+
+for (yr in unique(df$year)) {
+  df_yr = df[which(df$year==yr),]
+  avg=mean(df_yr$icat5total)
+  df_trend = rbind(df_trend, c(yr, avg))
+}
+
+df_trend=df_trend[which(df_trend$year>1111),]
+# df_yr = df[which(df$year==1991),]
+# yr=1991
+# avg=mean(df_yr$icat5total)
+# df_trend = rbind(df_trend, c(yr, avg))
+
+#print(df_trend)
+
+p1=ggplot(data = df_trend, aes(x=year, y=icat5total_year_avg)) +
+  geom_line(color='blue')+
+  geom_point() +
+  geom_vline(xintercept = 1997, color='red')
+
+print(p1)
+  
+
+```
+
+#3. Line chart of average icat5max over years
+
+
+```{r,echo=FALSE}
+
+df_trend_max = data.frame('year'=1111, 'icat5total_year_max'=0)
+
+#print(unique(df$year))
+
+for (yr in unique(df$year)) {
+  df_yr = df[which(df$year==yr),]
+  max=max(df_yr$icat5max)
+  df_trend_max = rbind(df_trend_max, c(yr, max))
+}
+
+df_trend_max=df_trend_max[which(df_trend_max$year>1111),]
+# df_yr = df[which(df$year==1991),]
+# yr=1991
+# avg=mean(df_yr$icat5total)
+# df_trend = rbind(df_trend, c(yr, avg))
+
+#print(df_trend)
+
+p2=ggplot(data = df_trend_max, aes(x=year, y=icat5total_year_max)) +
+  geom_line(color='blue')+
+  geom_point() +
+  geom_vline(xintercept = 1997, color='red')
+
+print(p2)
+  
+
+```
+
+#4. Hypothesis: The Scoring for Category 5 Workforce Focus was easier after 1997 as the number of items reduced. To verify this, a simple linear regression between the two terms should say if there is significant p-value or not 
+
+```{r,echo=FALSE}
+
+
+df$year_before_1997 = ifelse(df$year<=1997, 1,0)
+df$year_before_1997 = factor(df$year_before_1997)
+#summary(df)
+
+regression_model = lm(icat5total ~ year_before_1997, df)
+summary(regression_model)
+
+regression_model_1 = lm(icat5total ~ year_before_1997 + I(icat5total-icat5max), df)
+summary(regression_model_1)
+
+```
+
+
+```{r,echo=FALSE}
+
+#http://www.sthda.com/english/wiki/ggplot2-line-plot-quick-start-guide-r-software-and-data-visualization
+
+```
